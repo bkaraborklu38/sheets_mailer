@@ -1,0 +1,74 @@
+name: Sheets Mailer
+
+on:
+  # Actions sekmesinden elle çalıştırma
+  workflow_dispatch:
+    inputs:
+      uye:
+        description: 'Sekme adı (örn: AYSE). Boş bırakılırsa tüm üyeler çalışır.'
+        required: false
+        default: ''
+      limit:
+        description: 'Bu çalışmada gönderilecek en fazla mail'
+        required: true
+        default: '50'
+      dry_run:
+        description: 'Test modu (mail atmaz, sadece loglar)'
+        type: boolean
+        default: false
+
+  # Otomatik zamanlama — kullanmak için aşağıdaki iki satırın başındaki # işaretini kaldırın.
+  # Saatler UTC'dir (Türkiye = UTC+3). Örnek: hafta içi her gün 09:00 TR = 06:00 UTC
+  # schedule:
+  #   - cron: '0 6 * * 1-5'
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    # Bekleme süreleri uzun olduğu için iş birkaç saat sürebilir (GitHub üst sınırı 6 saat)
+    timeout-minutes: 350
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Kütüphaneleri yükle
+        run: pip install -r requirements.txt
+
+      - name: service_account.json oluştur
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        run: printf '%s' "$SERVICE_ACCOUNT_JSON" > service_account.json
+
+      - name: Mailleri gönder
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp-relay.brevo.com' }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SHEETS_ID: ${{ secrets.SHEETS_ID }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          UYE: ${{ github.event.inputs.uye }}
+          LIMIT: ${{ github.event.inputs.limit || '50' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -- --limit "$LIMIT"
+          if [ -n "$UYE" ]; then set -- "$@" --uye "$UYE"; fi
+          if [ "$DRY_RUN" = "true" ]; then set -- "$@" --dry-run; fi
+          echo "Çalıştırılıyor: python mailer.py $*"
+          python mailer.py "$@"
+
+      - name: Log dosyasını sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mailer-log
+          path: |
+            mailer.log
+            onizleme/
+          if-no-files-found: ignore
