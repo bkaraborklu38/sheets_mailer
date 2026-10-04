@@ -1,0 +1,14 @@
+# Gizli bilgiler — asla commit etmeyin
+.env
+service_account.json
+*.json.key
+
+# Çalışma çıktıları
+mailer.log
+onizleme/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
