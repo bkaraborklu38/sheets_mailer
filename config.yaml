@@ -1,0 +1,76 @@
+# ═══════════════════════════════════════════════════════════════
+#  Sheets Mailer — Ayarlar
+#  Bu dosyada gizli bilgi YOKTUR. Şifreler, API anahtarları ve
+#  Sheets ID .env dosyasında (yerelde) veya GitHub Secrets'ta durur.
+#  Aşağıdaki örnek değerleri kendi takımınıza göre değiştirin.
+# ═══════════════════════════════════════════════════════════════
+
+takim:
+  ad: "ÖRNEK Takımı"                    # Mail metinlerinde geçen takım adı
+  kurum: "Örnek Üniversitesi"           # Okul / kulüp / kurum
+  yarisma: "TEKNOFEST 2026"             # Yarışma veya etkinlik adı
+  proje: "İnsansız Kara Aracı (İKA)"    # Proje / kategori adı
+  logo_url: ""                          # İmzada görünecek logo (herkese açık bir görsel linki, boşsa logo gösterilmez)
+  dokuman_url: ""                       # Mailde link verilecek doküman (rapor, sunum vb.), boşsa satır gizlenir
+  kampanya: "SPONSORLUK-2026"           # Brevo panelinde etiket olarak görünür, istemezseniz boş bırakın
+  iletisim_mail: "takim@example.com"    # Sadece dry-run önizlemesinde kullanılır; gerçek gönderimde SENDER_EMAIL geçerlidir
+
+gonderim:
+  gunluk_limit: 60          # --limit verilmezse bir çalışmada gönderilecek en fazla mail
+  bekleme_min_sn: 180       # İki mail arası en kısa bekleme (saniye) — spam'e düşmemek için
+  bekleme_max_sn: 420       # İki mail arası en uzun bekleme (saniye)
+  ek_dosya: "attachments/sponsorluk_dosyasi.pdf"   # Her maile eklenecek dosya; boş bırakılırsa ek gönderilmez
+  ek_dosya_adi: "Sponsorluk_Dosyasi.pdf"           # Alıcının göreceği dosya adı
+  konu_onek_uye_adi: true   # true ise konu "[AYŞE] ..." şeklinde başlar (gelen cevapları ayırmak için)
+
+sheets:
+  baslik_satiri: 1          # Kaç satır başlık var (bu satırlar atlanır)
+  # Sütun harfleri — tablonuzun yapısına göre değiştirin
+  sutunlar:
+    sirket: C
+    mail: D
+    sektor: E
+    durum: F
+    ozel_not: G
+    tarih: H
+  durum_hazir: "Hazır"            # Script sadece bu durumdaki satırları gönderir
+  durum_gonderildi: "Gönderildi"  # Gönderim sonrası yazılan durum
+  durum_hata: "Hata"              # Gönderim başarısız olursa yazılan durum
+  renklendir: true                # Gönderilen satırı yeşile, hatalıyı kırmızıya boyar
+  # Taranmayacak sekmeler (büyük/küçük harf fark etmez)
+  atlanan_sekmeler: ["Özet", "Taslak", "Üyeler", "Summary"]
+
+# ── Üyeler ──────────────────────────────────────────────────────
+# Her üyenin Sheets'te kendi adını taşıyan bir sekmesi olmalı.
+#   sekme    : Sheets'teki sekme adı (büyük/küçük harf fark etmez)
+#   ad       : Maillerde gönderici adı olarak görünecek tam isim
+#   reply_to : Cevapların gideceği adres. Gmail kullanıyorsanız
+#              takim+isim@gmail.com şeklinde alias verebilirsiniz.
+#              Alias'ta Türkçe karakter kullanmayın (ü, ş, ı ...).
+#   no       : Gmail kopyalarının konusuna eklenen kısa kod (opsiyonel)
+uyeler:
+  - sekme: "AYSE"
+    ad: "Ayşe Örnek"
+    reply_to: "takim+ayse@example.com"
+    no: "01"
+  - sekme: "MEHMET"
+    ad: "Mehmet Örnek"
+    reply_to: "takim+mehmet@example.com"
+    no: "02"
+
+# ── Şablon seçimi ───────────────────────────────────────────────
+# Satırdaki "sektör" metninde anahtar kelimelerden biri geçiyorsa
+# ilgili şablon kullanılır. Yukarıdan aşağı ilk eşleşen kazanır.
+# Hiçbiri eşleşmezse "varsayilan" şablon kullanılır.
+# Şablon adı = templates/ klasöründeki dosya adı (.html olmadan).
+sablonlar:
+  varsayilan: genel
+  kategoriler:
+    - anahtarlar: ["savunma", "ağır sanayi", "otomotiv"]
+      sablon: teknik
+    - anahtarlar: ["yazılım", "yapay zeka", "simülasyon", "elektronik", "otomasyon"]
+      sablon: teknik
+    - anahtarlar: ["imalat", "talaşlı", "3d baskı", "cnc"]
+      sablon: imalat
+    - anahtarlar: ["gıda", "yiyecek", "restoran", "kafe", "otel", "giyim", "tekstil"]
+      sablon: marka
